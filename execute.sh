@@ -7,14 +7,11 @@ rm *.o
 rm *.mod
 ./metropolis.out
 rm *.out
-# OBSERVABLE
-# gfortran -c r1279/r1279.f90 r1279/ran2.f code/model.f code/observables.f
-# chmod +x observables.o model.o r1279.o ran2.o
-# gfortran observables.o model.o r1279.o ran2.o -o observables.out
-# rm *.o
-# rm *.mod
-# ./observables.out
-# rm *.out
-# # PLOT OBSERVABLE
-# python3 plots/mz.py
-# open results/fig*.pdf
+# BINNING
+python3 code/binning.py
+# PLOTTING
+python3 plots/timeseries.py
+python3 plots/averages.py
+python3 plots/error.py
+open results/averages_T*.pdf
+

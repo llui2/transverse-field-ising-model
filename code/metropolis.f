@@ -58,8 +58,8 @@ C***********************************************************************
 C     READ SIMULATION VARIABLES FROM INPUT FILE
       CALL READ_INPUT(L,m,TEMP_SIZE,TEMP_LIST,H_SIZE,H_LIST,
      .                        SEED,MCTOT,SC)
-      N = L*L
-      MCINI = MCTOT/3
+      N = L**2
+      MCINI = 0!MCTOT/3
 C     ALLOCATION
       ALLOCATE(S(1:m,1:N))
 C***********************************************************************
@@ -67,6 +67,11 @@ C***********************************************************************
 C***********************************************************************
 C     SYSTEM STRUCTURE
       CALL SQUARE_LATTICE_PBC(L,NBR,JJ)
+C***********************************************************************
+C     CREATE DIRECTORY FOR EACH TEMP AND Γ VALUE IN THE 'sample' FOLDER
+      CALL SYSTEM('mkdir -p results/sample/')
+C     COPY INPUT FILE TO THE RESULTS FOLDER
+      CALL SYSTEM('cp input.txt results/input.txt')
 C***********************************************************************
 
 C     FOR ALL TEMP VALUES
@@ -82,17 +87,12 @@ C     FOR ALL Γ VALUES
       str2 = str(1:1)//str(3:4)
 
 C***********************************************************************
-C     CREATE DIRECTORY FOR EACH TEMP AND Γ VALUE IN THE 'sample' FOLDER
-      CALL SYSTEM('mkdir -p results/sample/')
-C     COPY INPUT FILE TO THE RESULTS FOLDER
-      CALL SYSTEM('cp input.txt results/input.txt')
-C***********************************************************************
 C     INITIALIZE RANDOM NUMBER GENERATOR
       CALL setr1279(SEED)
 C***********************************************************************
 C     SPIN CONFIGURATION FILE FOR EACH p VALUE AND SEED
       OPEN(UNIT=1,FILE='results/sample/T'//str1//'_Γ'//str2//'.dat')
-      WRITE(1,'(g0)') 'MCS,Mz,Mx,E'
+      WRITE(1,'(g0)') 'MCS,Mz,Mx,Ene'
 C***********************************************************************
 C     GENERATION OF TWO RANDOM INITIAL SPIN CONFIGURATIONS
       DO i = 1,m
@@ -115,8 +115,8 @@ C     MONTE-CARLO SIMULATION
 C           EXTRACT THERMODYNAMICS EVERY SC MONTE-CARLO STEPS
             IF ((IMC.GT.MCINI).AND.(SC*(IMC/SC).EQ.IMC)) THEN
 200         FORMAT(I0,3(A,F0.8))
-            WRITE(1,200) IMC,',',MAGNET_Z(N,m,S),',',
-     .       MAGNET_X(N,m,TEMP,H,S),',',ENE
+            WRITE(1,200) IMC,',',ABS(MAGNET_Z(N,m,S)),',',
+     .       MAGNET_X(N,m,TEMP,H,S),',',ENE/N
             END IF
       END DO !IMC
 C***********************************************************************

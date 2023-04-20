@@ -120,12 +120,13 @@ C     THIS FUNCTION CALCULATES THE ENERGY OF THE SYSTEM GIVEN A CONFIGURATION
       INTEGER i, j, k
       REAL*8 K2
       REAL*8 HD, V
-      INTEGER ABOVE(1:m) !SPIN ABOVE i
+      INTEGER PBC(0:m+1) !PBC IN THE TROTTER DIRECTION
 
-      DO i=1,m-1
-            ABOVE(i) = i+1
+      PBC(0)=m
+      DO i=1,m
+            PBC(i) = i
       END DO
-      ABOVE(m) = 1
+      PBC(m+1) = 1
 
       K2 = -(TEMP/2)*LOG(TANH(H/(TEMP*m)))
 
@@ -137,7 +138,7 @@ C     THIS FUNCTION CALCULATES THE ENERGY OF THE SYSTEM GIVEN A CONFIGURATION
                   DO k = 1,SIZE(NBR(j)%v)
                         HD = HD + JJ(j)%v(k)*S(i,j)*S(i,NBR(j)%v(k))
                   END DO
-                  V = V + S(i,j)*S(ABOVE(i),j)
+                  V = V + S(i,j)*S(PBC(i+1),j)
             END DO
       END DO
 
@@ -188,8 +189,9 @@ C     CALCULATION OF ΔHD, COUPLINGS CONTRIBUTION
       DHD = 2*DHD*S(i,j)/m
 
 C     CALCULATION OF ΔV, TRANSVERSE CONTRIBUTION
+      DV = 0
       K2 = -(TEMP/2.)*LOG(TANH(H/(TEMP*m)))
-      DV = K2*S(i,j)*(S(PBC(i+1),j)+S(PBC(i-1),j))
+      DV = 2*K2*S(i,j)*(S(PBC(i+1),j)+S(PBC(i-1),j))
 
 C     CALCULATION OF ΔH
       DE = DHD + DV
@@ -206,6 +208,7 @@ C-----------------------------------------------------------------------
 
 C-----------------------------------------------------------------------
       REAL*8 FUNCTION MAGNET_Z(N,m,S)
+C     THIS FUNCTION CALCULATES THE LONGITUDINAL MAGNETIZATION OF THE SYSTEM     
 
       INTEGER N, m
       INTEGER S(1:m,1:N)
@@ -228,6 +231,7 @@ C-----------------------------------------------------------------------
 
 C-----------------------------------------------------------------------
       REAL*8 FUNCTION MAGNET_X(N,m,TEMP,H,S)
+C     THIS FUNCTION CALCULATES THE TRANSVERSE MAGNETIZATION OF THE SYSTEM     
 
       INTEGER N, m
       REAL*8 TEMP, H
@@ -285,34 +289,6 @@ C     ADD ELEMENT INTO LIST
 
       RETURN
       END SUBROUTINE
-C-----------------------------------------------------------------------
-
-C-----------------------------------------------------------------------
-C     REMOVE INDEX FROM LIST
-      SUBROUTINE RMVOFLIST(list,index)
-
-      INTEGER, DIMENSION(:), ALLOCATABLE:: list
-      INTEGER index
-
-      INTEGER i, isize
-      INTEGER, DIMENSION(:), ALLOCATABLE:: clist
-
-      IF (ALLOCATED(list)) THEN
-            isize = SIZE(list)
-            ALLOCATE(clist(isize-1))
-            DO i = 1,index-1
-                  clist(i) = list(i)
-            END DO
-            DO i = index,isize-1
-                  clist(i) = list(i+1)
-            END DO
-            DEALLOCATE(list)
-            CALL MOVE_ALLOC(clist, list)
-
-      END IF
-
-      RETURN
-      END SUBROUTINE RMVOFLIST
 C-----------------------------------------------------------------------
 
       END MODULE MODEL
